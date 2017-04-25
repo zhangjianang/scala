@@ -1,0 +1,122 @@
+package shiyanlou
+object AngImplicit {
+   def main(args:Array[String]){
+//     testRational
+//     secondParameter
+   val imax = maxListImpParam(List(2,5,3,4,1,20,8))
+   val dmax = maxListImpParam(List(3.4,5.6,23,1.2))
+   val smax = maxListImpParam(List("one","two","three","ues","ang"))
+     println(imax) 
+     println(dmax) 
+     println(smax) 
+   }
+
+  //第一种用法，类型转换，调用函数方便 
+   def testRational{
+     val v1=new Rational(3,15)
+     val v2=v1+10
+     implicit def int2Rational(x:Int):Rational=new Rational(x)
+      val v3=10 + v1
+//   println(v2)
+     println(v3)
+  }
+   //第二种用法，穿参数，可以采用隐式传
+   def secondParameter{
+    //     val angPrompt=new Prompt("relax>")
+//     Greeter.greet("ang")(angPrompt)
+//     Greeter.greetNormal("ang")(angPrompt)
+//     Greeter.greetRealNormal("ang",angPrompt)
+//    implicit val liliPrompt=new Prompt("lily>") 
+//    implicit val drink=new Drink("pussy") 
+//     Greeter.greet("ang")
+     import AngImplicitObject._
+     Greeter.greetChange("ang") 
+   }
+   
+   //第三种用法
+
+  def maxListUpBound[T <: Ordered[T]](elem:List[T]):T=
+  elem match{
+    case List() => throw new IllegalArgumentException("empty lis")
+    case List(x) => x 
+    case x::rest =>  
+      val maxRest= maxListUpBound(rest)
+      if(x > maxRest) 
+        x
+      else 
+       maxRest 
+  }
+  
+  def maxListImpParam[T](elem:List[T])(implicit order:T => Ordered[T]):T=
+    elem match{
+    case List()=> throw new IllegalArgumentException("empty list")  
+    case List(x) => x
+    case x::rest => {
+      val maxRest =  maxListImpParam(rest)(order)
+      if(order(x)>maxRest) x
+      else maxRest
+    }
+  }
+  
+}
+
+
+
+
+
+//放到单独文件中，引入
+   object LilyPref{
+     implicit val prompt=new Prompt("lily>")   
+     implicit val drink=new Drink("pussy")
+   }
+
+
+
+class Prompt(val pre:String)
+class Drink(val pre:String)
+
+object Greeter{
+  def greet(name:String)(implicit prompt:Prompt){
+    println("welcome "+name+",System is ready")  
+    println(prompt.pre)
+  }
+ //implicit 作用到整个参数表 
+  def greetChange(name:String)(implicit prompt:Prompt,drink:Drink){
+    println("welcome "+name+",System is ready")  
+    println(prompt.pre)
+    println("we drink:"+drink.pre)
+  }
+  def greetNormal(name:String)(prompt:Prompt){
+    println("welcome "+name+",System is ready")  
+    println(prompt.pre)
+  }
+  def greetRealNormal(name:String,prompt:Prompt){
+    println("welcome "+name+",System is ready")  
+    println(prompt.pre)
+  }
+}
+
+class Rational(n:Int,d:Int){
+  def this(n:Int)=this(n,1)
+   require(d!=0) 
+   private val g=gcd(n.abs,d.abs)
+   val num=n/g 
+   val bot=d/g
+   override def toString= num+" / "+bot
+   def +(that:Rational):Rational={
+    new Rational(num*that.bot+that.num*bot,bot*that.bot) 
+   }
+   def +(n:Int):Rational=new Rational(num+n*bot,bot)
+   def *(that:Rational):Rational=new Rational(num*that.num,bot*that.bot)
+
+//   implicit def int2rational(x:Int):Rational=new Rational(x,1)
+   
+   
+
+   def gcd(a:Int,b:Int):Int={
+    if(b==0) 
+     a 
+    else
+      gcd(b,a%b)
+   }
+}
